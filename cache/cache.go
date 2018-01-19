@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -83,7 +84,7 @@ func (cc *CacheController) Store(version int64, v Cacheable) {
 		return
 	}
 
-	f, err := os.Create(cc.dirName + "/" + key + ".json")
+	f, err := os.Create(cc.dirName + "/" + key + ".json.gz")
 	if err != nil {
 		if EnableCacheLog {
 			log.Println("[Cache] faled create file:", err)
@@ -92,7 +93,10 @@ func (cc *CacheController) Store(version int64, v Cacheable) {
 	}
 	defer f.Close()
 
-	_, err = f.Write(bytes)
+	gw := gzip.NewWriter(f)
+	defer gw.Close()
+
+	_, err = gw.Write(bytes)
 	if err != nil {
 		if EnableCacheLog {
 			log.Println("[Cache] faled write to file:", err)
@@ -102,8 +106,19 @@ func (cc *CacheController) Store(version int64, v Cacheable) {
 }
 
 func (cc *CacheController) Find(version int64, key string, v Cacheable) bool {
-	path := cc.dirName + "/" + key + ".json"
-	bytes, err := ioutil.ReadFile(path)
+	path := cc.dirName + "/" + key + ".json.gz"
+	f, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+
+	gr, err := gzip.NewReader(f)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	bytes, err := ioutil.ReadAll(gr)
 	if err != nil {
 		return false
 	}
