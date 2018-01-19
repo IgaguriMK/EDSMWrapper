@@ -13,6 +13,8 @@ import (
 	"github.com/IgaguriMK/planetStat/vec"
 )
 
+const SystemInfoCacheVer = 1
+
 var apiCallMux sync.Mutex
 
 func init() {
@@ -76,6 +78,11 @@ func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) 
 		return sys.systemInfoCache, nil
 	}
 
+	var systemInfo SystemInfo
+	if cc.Find(SystemInfoCacheVer, fmt.Sprintf("systemInfo/%d", sys.ID), &systemInfo) {
+		return &systemInfo, nil
+	}
+
 	url := fmt.Sprintf("https://www.edsm.net/api-system-v1/bodies?systemId=%d", sys.ID)
 	log.Println(url)
 
@@ -92,13 +99,14 @@ func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) 
 		return nil, err
 	}
 
-	var v SystemInfo
-	err = json.Unmarshal(bytes, &v)
+	err = json.Unmarshal(bytes, &systemInfo)
 	if err != nil {
 		return nil, err
 	}
 
-	return &v, nil
+	cc.Store(SystemInfoCacheVer, systemInfo)
+
+	return &systemInfo, nil
 }
 
 type SystemInfo struct {
@@ -106,6 +114,10 @@ type SystemInfo struct {
 	ID     int32  `json:"id"`
 	ID64   int64  `json:"id64"`
 	Name   string `json:"name"`
+}
+
+func (info SystemInfo) Key() string {
+	return fmt.Sprintf("systemInfo/%d", info.ID)
 }
 
 func (info *SystemInfo) StarCount() int {
