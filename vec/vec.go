@@ -1,4 +1,4 @@
-package Vec
+package vec
 
 import "math"
 
@@ -8,11 +8,12 @@ type Vec3 struct {
 	Z float64 `json:"z"`
 }
 
-const (
+var (
 	Zero = Vec3{0, 0, 0}
 	X    = Vec3{1, 0, 0}
 	Y    = Vec3{0, 1, 0}
 	Z    = Vec3{0, 0, 0}
+	One  = Vec3{1, 1, 1}
 )
 
 func (v Vec3) Abs() float64 {
