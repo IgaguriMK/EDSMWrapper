@@ -17,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cube := cube.FromCenter(vec.Zero, vec.One.Scalar(20))
+	cube := cube.FromCenter(vec.Zero, vec.One.Scalar(10))
 
 	systems, err := cube.GetSystems(cc)
 	if err != nil {
@@ -25,6 +25,6 @@ func main() {
 	}
 
 	for _, s := range systems {
-		fmt.Printf("%s\t%s\n", s.Name, s.PrimaryStar.Type)
+		fmt.Printf("%s\n", s.Name)
 	}
 }

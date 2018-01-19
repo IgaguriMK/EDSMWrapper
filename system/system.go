@@ -4,11 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"sync"
 
-	vec "github.com/IgaguriMK/planetStat/vec"
+	"github.com/IgaguriMK/planetStat/vec"
 )
+
+var apiCallMux sync.Mutex
 
 type System struct {
 	Coords       vec.Vec3 `json:"coords"`
@@ -26,6 +30,7 @@ type System struct {
 }
 
 func Get(x, y, z, size float64) ([]System, error) {
+
 	params := url.Values{}
 	params.Add("x", fmt.Sprint(x))
 	params.Add("y", fmt.Sprint(y))
@@ -36,7 +41,13 @@ func Get(x, y, z, size float64) ([]System, error) {
 	params.Add("showPermit", "1")
 	params.Add("showPrimaryStar", "1")
 
-	res, err := http.Get("https://www.edsm.net/api-v1/cube-systems?" + params.Encode())
+	url := "https://www.edsm.net/api-v1/cube-systems?" + params.Encode()
+	log.Println(url)
+
+	apiCallMux.Lock()
+	res, err := http.Get(url)
+	apiCallMux.Unlock()
+
 	if err != nil {
 		return nil, err
 	}

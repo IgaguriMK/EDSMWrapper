@@ -23,13 +23,13 @@ func FromCenter(center, size vec.Vec3) Cube {
 	return Cube{center.Sub(hs), size}
 }
 
-func (c Cube) GetSystems(cacheController *cache.CacheController) ([]system.System, error) {
+func (cube Cube) GetSystems(cacheController *cache.CacheController) ([]system.System, error) {
 	err := cacheController.RegisterType("chunk")
 	if err != nil {
 		return nil, err
 	}
 
-	cps := c.Chunks()
+	cps := cube.Chunks()
 
 	systems := make([]system.System, 0)
 	for _, cp := range cps {
@@ -42,15 +42,27 @@ func (c Cube) GetSystems(cacheController *cache.CacheController) ([]system.Syste
 			if err != nil {
 				return nil, err
 			}
+
+			ssc := make([]system.System, 0, len(ss))
+			for _, s := range ss {
+				if cp.Contains(s.Coords) {
+					ssc = append(ssc, s)
+				}
+			}
+
 			ch = Chunk{
 				Pos:     cp,
-				Systems: ss,
+				Systems: ssc,
 			}
 
 			cacheController.Store(CubeCacheVer, ch)
 		}
 
-		systems = append(systems, ch.Systems...)
+		for _, s := range ch.Systems {
+			if cube.Contains(s.Coords) {
+				systems = append(systems, s)
+			}
+		}
 	}
 
 	return systems, nil
@@ -62,9 +74,9 @@ func (c Cube) Chunks() []ChunkPos {
 	top := PosChunk(cw.Pos.Add(cw.Size))
 
 	chunks := make([]ChunkPos, 0)
-	for x := bot.X; x < top.X; x++ {
-		for y := bot.Y; y < top.Y; y++ {
-			for z := bot.Z; z < top.Z; z++ {
+	for x := bot.X; x <= top.X; x++ {
+		for y := bot.Y; y <= top.Y; y++ {
+			for z := bot.Z; z <= top.Z; z++ {
 				chunks = append(chunks, ChunkPos{x, y, z})
 			}
 		}
@@ -122,10 +134,15 @@ type ChunkPos struct {
 
 func PosChunk(v vec.Vec3) ChunkPos {
 	return ChunkPos{
-		X: int(v.X / ChunkSize),
-		Y: int(v.Y / ChunkSize),
-		Z: int(v.Z / ChunkSize),
+		X: int(math.Floor(v.X / ChunkSize)),
+		Y: int(math.Floor(v.Y / ChunkSize)),
+		Z: int(math.Floor(v.Z / ChunkSize)),
 	}
+}
+
+func (pc ChunkPos) Contains(v vec.Vec3) bool {
+	vpc := PosChunk(v)
+	return pc == vpc
 }
 
 func (cp ChunkPos) Center() vec.Vec3 {
