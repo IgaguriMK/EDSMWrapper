@@ -11,7 +11,7 @@ import (
 
 const ChunkSize = 100
 const MaxSize = 200
-const CubeCacheVer = 1
+const CubeCacheVer = 2
 
 func init() {
 	cache.AddCacheType("chunk")
@@ -31,6 +31,8 @@ func (cube Cube) GetSystems(cacheController *cache.CacheController) ([]system.Sy
 	cps := cube.Chunks()
 
 	systems := make([]system.System, 0)
+	containedSystems := make(map[int32]bool)
+
 	for _, cp := range cps {
 		var ch Chunk
 		ok := cacheController.Find(CubeCacheVer, cp.PosStr(), &ch)
@@ -58,8 +60,9 @@ func (cube Cube) GetSystems(cacheController *cache.CacheController) ([]system.Sy
 		}
 
 		for _, s := range ch.Systems {
-			if cube.Contains(s.Coords) {
+			if cube.Contains(s.Coords) && !containedSystems[s.ID] {
 				systems = append(systems, s)
+				containedSystems[s.ID] = true
 			}
 		}
 	}

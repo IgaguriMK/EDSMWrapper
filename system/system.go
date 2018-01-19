@@ -25,7 +25,7 @@ type System struct {
 	Coords       vec.Vec3 `json:"coords"`
 	CoordsLocked bool     `json:"coordsLocked"`
 	Name         string   `json:"name"`
-	ID           int      `json:"id"`
+	ID           int32    `json:"id"`
 	ID64         int64    `json:"id64"`
 	PermitName   string   `json:"permitName"`
 	PrimaryStar  struct {
