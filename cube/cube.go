@@ -13,6 +13,10 @@ const ChunkSize = 100
 const MaxSize = 200
 const CubeCacheVer = 1
 
+func init() {
+	cache.AddCacheType("chunk")
+}
+
 type Cube struct {
 	Pos  vec.Vec3
 	Size vec.Vec3
@@ -24,11 +28,6 @@ func FromCenter(center, size vec.Vec3) Cube {
 }
 
 func (cube Cube) GetSystems(cacheController *cache.CacheController) ([]system.System, error) {
-	err := cacheController.RegisterType("chunk")
-	if err != nil {
-		return nil, err
-	}
-
 	cps := cube.Chunks()
 
 	systems := make([]system.System, 0)

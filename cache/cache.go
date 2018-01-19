@@ -11,6 +11,11 @@ import (
 )
 
 var EnableCacheLog bool = true
+var CacheTypes []string
+
+func AddCacheType(typ string) {
+	CacheTypes = append(CacheTypes, typ)
+}
 
 type CacheController struct {
 	dirName string
@@ -33,30 +38,28 @@ func NewController(dirName string) (*CacheController, error) {
 		return nil, errors.New("not directory")
 	}
 
+	for _, typeName := range CacheTypes {
+		path := dirName + "/" + typeName
+		info, err := os.Stat(path)
+
+		if err != nil {
+			if os.IsNotExist(err) {
+				err = os.MkdirAll(path, os.ModePerm)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				return nil, err
+			}
+		} else if !info.IsDir() {
+			return nil, errors.New("found not directory")
+		}
+	}
+
 	return &CacheController{
 		dirName: dirName,
 		maxAge:  3600 * 24 * 30,
 	}, nil
-}
-
-func (cc *CacheController) RegisterType(typeName string) error {
-	path := cc.dirName + "/" + typeName
-	info, err := os.Stat(path)
-
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.MkdirAll(path, os.ModePerm)
-			if err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} else if !info.IsDir() {
-		return errors.New("found not directory")
-	}
-
-	return nil
 }
 
 func (cc *CacheController) Store(version int64, v Cacheable) {

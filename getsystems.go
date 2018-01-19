@@ -17,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cube := cube.FromCenter(vec.Zero, vec.One.Scalar(10))
+	cube := cube.FromCenter(vec.Vec3{0, 0, 0}, vec.One.Scalar(20))
 
 	systems, err := cube.GetSystems(cc)
 	if err != nil {
@@ -25,6 +25,11 @@ func main() {
 	}
 
 	for _, s := range systems {
-		fmt.Printf("%s\n", s.Name)
+		info, err := s.GetSystemInfo(cc)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("(%d) %s, stars:%d, bodys:%d\n", s.ID, s.Name, info.StarCount(), info.PlanetCount())
 	}
 }
