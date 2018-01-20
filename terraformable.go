@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cube := cube.FromCenter(vec.Vec3{-9530, -910, 19808}, vec.One.Scalar(200))
+	cube := cube.FromCenter(vec.Vec3{25, -20, 25899}, vec.One.Scalar(200))
 
 	systems, err := cube.GetSystems(cc)
 	if err != nil {
@@ -58,11 +58,13 @@ func main() {
 		}
 
 		star := info.Stars()[0]
+		starType := system.ShortType(star.SubType)
 		for _, b := range info.Planets() {
-
+			terraformable := "F"
 			if b.TerraformingState == "Candidate for terraforming" {
-				fmt.Printf("%s\t%f\t%f\n", star.SubType, star.SurfaceTemperature, b.DistanceToArrival)
+				terraformable = "T"
 			}
+			fmt.Printf("%s\t%f\t%f\t%s\n", starType, star.SurfaceTemperature, b.DistanceToArrival, terraformable)
 		}
 	}
 }

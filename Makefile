@@ -1,9 +1,7 @@
-.PHONY: all
-all: deps build
-
 .PHONY: build
 build:
-	go build getsystems.go
+	go build terraformable.go
+	go build getstartype.go
 
 .PHONY: deps
 deps:
@@ -12,4 +10,3 @@ deps:
 .PHONY: clean
 clean:
 	- rm *.exe
-	- rm getsystems
