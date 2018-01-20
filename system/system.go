@@ -2,12 +2,13 @@ package system
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-	"sync"
+	"time"
 
 	"github.com/IgaguriMK/planetStat/cache"
 	"github.com/IgaguriMK/planetStat/vec"
@@ -15,7 +16,13 @@ import (
 
 const SystemInfoCacheVer = 1
 
-var apiCallMux sync.Mutex
+var (
+	apiCallWait = time.Second
+)
+
+var (
+	ErrNotFound = errors.New("API returns nil response")
+)
 
 func init() {
 	cache.AddCacheType("systemInfo")
@@ -51,9 +58,8 @@ func Get(x, y, z, size float64) ([]System, error) {
 	url := "https://www.edsm.net/api-v1/cube-systems?" + params.Encode()
 	log.Println(url)
 
-	apiCallMux.Lock()
+	time.Sleep(apiCallWait)
 	res, err := http.Get(url)
-	apiCallMux.Unlock()
 
 	if err != nil {
 		return nil, err
@@ -86,9 +92,8 @@ func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) 
 	url := fmt.Sprintf("https://www.edsm.net/api-system-v1/bodies?systemId=%d", sys.ID)
 	log.Println(url)
 
-	apiCallMux.Lock()
+	time.Sleep(apiCallWait)
 	res, err := http.Get(url)
-	apiCallMux.Unlock()
 
 	if err != nil {
 		return nil, err
@@ -97,6 +102,10 @@ func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) 
 	bytes, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if string(bytes) == "[]" {
+		return nil, ErrNotFound
 	}
 
 	err = json.Unmarshal(bytes, &systemInfo)
@@ -209,4 +218,21 @@ type Body struct {
 	Type                          string  `json:"type"`
 	UpdateTime                    string  `json:"updateTime"`
 	VolcanismType                 string  `json:"volcanismType"`
+}
+
+func CheckAPILocked() (bool, error) {
+	url := "https://www.edsm.net/api-system-v1/bodies?systemId=27"
+	time.Sleep(apiCallWait)
+	res, err := http.Get(url)
+
+	if err != nil {
+		return false, err
+	}
+
+	bytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return false, err
+	}
+
+	return string(bytes) == "[]", nil
 }
