@@ -95,7 +95,7 @@ func (c Cube) WrapBoundary() Cube {
 	p.Y, q.Y = allign(p.Y, q.Y)
 	p.Z, q.Z = allign(p.Z, q.Z)
 
-	return Cube{p, q}
+	return Cube{p, q.Sub(p)}
 }
 
 func allign(l, r float64) (float64, float64) {
