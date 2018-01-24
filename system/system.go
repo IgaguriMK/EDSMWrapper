@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/IgaguriMK/edsmWrapper/cache"
@@ -234,7 +235,12 @@ func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) 
 	return &systemInfo, nil
 }
 
+var apiLock sync.Mutex
+
 func getAPI(url string) ([]byte, bool, error) {
+	apiLock.Lock()
+	defer apiLock.Unlock()
+
 	res, err := http.Get(url)
 
 	if err != nil {
