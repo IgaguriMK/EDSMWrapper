@@ -111,6 +111,66 @@ func Get(x, y, z, size float64) ([]System, error) {
 	return v, nil
 }
 
+func GetSystemByName(name string) (*System, error) {
+	params := url.Values{}
+	params.Add("systemName", name)
+	params.Add("showId", "1")
+	params.Add("showCoordinates", "1")
+	params.Add("showPermit", "1")
+	params.Add("showPrimaryStar", "1")
+
+	url := "https://www.edsm.net/api-v1/system?" + params.Encode()
+	log.Println(url)
+
+	var bytes []byte
+
+	tryCount := 0
+	for {
+		var err error
+		var ok bool
+
+		time.Sleep(apiCallWait)
+		bytes, ok, err = getAPI(url)
+
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			apiCallWait = apiCallWait * 4 / 5
+			if apiCallWait < apiCallWaitDefault {
+				apiCallWait = apiCallWaitDefault
+			} else {
+				log.Println("API call wait is", float64(apiCallWait)/1e9)
+			}
+			break
+		}
+		if tryCount > RetryCount {
+			return nil, ErrAPILocked
+		}
+
+		locked, err := CheckAPILocked()
+		if err != nil {
+			return nil, err
+		}
+		if !locked {
+			break
+		}
+		apiCallWait = apiCallWait * 2
+		log.Println("API call wait is", float64(apiCallWait)/1e9)
+		tryCount++
+		log.Println("Retry", tryCount)
+		time.Sleep(apiCallWait)
+	}
+
+	var v System
+	err := json.Unmarshal(bytes, &v)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v, nil
+}
+
 func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) {
 	if sys.systemInfoCache != nil {
 		return sys.systemInfoCache, nil
