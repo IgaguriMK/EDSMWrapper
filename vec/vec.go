@@ -61,3 +61,7 @@ func (v Vec3) Unit() Vec3 {
 func (v Vec3) Dot(u Vec3) float64 {
 	return v.X*u.X + v.Y*u.Y + v.Z*u.Z
 }
+
+func (v Vec3) Dist(u Vec3) float64 {
+	return u.Sub(v).Abs()
+}
