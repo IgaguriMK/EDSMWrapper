@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IgaguriMK/planetStat/cache"
-	"github.com/IgaguriMK/planetStat/vec"
+	"github.com/IgaguriMK/edsmWrapper/cache"
+	"github.com/IgaguriMK/edsmWrapper/vec"
 )
 
 const SystemInfoCacheVer = 1
@@ -339,12 +339,12 @@ func ShortType(longType string) string {
 		return s
 	}
 
-	log.Println("Unknown Star Type:", longType)
+	log.Println("Unknown Type:", longType)
 
 	s = longType
-	s = strings.Replace(s, " ", "_", 0)
-	s = strings.Replace(s, "(", "_", 0)
-	s = strings.Replace(s, ")", "_", 0)
+	s = strings.Replace(s, " ", "_", -1)
+	s = strings.Replace(s, "(", "_", -1)
+	s = strings.Replace(s, ")", "_", -1)
 
 	return s
 }

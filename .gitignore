@@ -2,4 +2,6 @@
 getsystems
 
 *.txt
+*.md
+*.html
 /.cache

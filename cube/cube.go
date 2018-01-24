@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/IgaguriMK/planetStat/cache"
-	"github.com/IgaguriMK/planetStat/system"
-	vec "github.com/IgaguriMK/planetStat/vec"
+	"github.com/IgaguriMK/edsmWrapper/cache"
+	"github.com/IgaguriMK/edsmWrapper/system"
+	"github.com/IgaguriMK/edsmWrapper/vec"
 )
 
 const ChunkSize = 100
