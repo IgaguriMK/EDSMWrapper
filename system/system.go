@@ -20,7 +20,7 @@ const SystemInfoCacheVer = 1
 const RetryCount = 10
 
 var (
-	apiCallWaitDefault = time.Second * 4
+	apiCallWaitDefault = time.Millisecond * 250
 	apiCallWait        = apiCallWaitDefault
 )
 
@@ -28,6 +28,8 @@ var (
 	ErrNotFound  = errors.New("API returns nil response")
 	ErrAPILocked = errors.New("API locked")
 )
+
+var apiLock sync.Mutex
 
 func init() {
 	cache.AddCacheType("systemInfo")
@@ -50,6 +52,9 @@ type System struct {
 }
 
 func Get(x, y, z, size float64) ([]System, error) {
+	apiLock.Lock()
+	defer apiLock.Unlock()
+
 	params := url.Values{}
 	params.Add("x", fmt.Sprint(x))
 	params.Add("y", fmt.Sprint(y))
@@ -113,6 +118,9 @@ func Get(x, y, z, size float64) ([]System, error) {
 }
 
 func GetSystemByName(name string) (*System, error) {
+	apiLock.Lock()
+	defer apiLock.Unlock()
+
 	params := url.Values{}
 	params.Add("systemName", name)
 	params.Add("showId", "1")
@@ -173,6 +181,9 @@ func GetSystemByName(name string) (*System, error) {
 }
 
 func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) {
+	apiLock.Lock()
+	defer apiLock.Unlock()
+
 	if sys.systemInfoCache != nil {
 		return sys.systemInfoCache, nil
 	}
@@ -235,12 +246,7 @@ func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) 
 	return &systemInfo, nil
 }
 
-var apiLock sync.Mutex
-
 func getAPI(url string) ([]byte, bool, error) {
-	apiLock.Lock()
-	defer apiLock.Unlock()
-
 	res, err := http.Get(url)
 
 	if err != nil {
