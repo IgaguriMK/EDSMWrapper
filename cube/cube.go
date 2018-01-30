@@ -13,8 +13,11 @@ const ChunkSize = 100
 const MaxSize = 200
 const CubeCacheVer = 2
 
+var ChunkCache map[ChunkPos]*Chunk
+
 func init() {
 	cache.AddCacheType("chunk")
+	ChunkCache = make(map[ChunkPos]*Chunk)
 }
 
 type Cube struct {
@@ -35,28 +38,35 @@ func (cube Cube) GetSystems(cacheController *cache.CacheController) ([]system.Sy
 
 	for _, cp := range cps {
 		var ch Chunk
-		ok := cacheController.Find(CubeCacheVer, cp.PosStr(), &ch)
+		pch, ok := ChunkCache[cp]
 
-		if !ok {
-			c := cp.Center()
-			ss, err := system.Get(c.X, c.Y, c.Z, ChunkSize)
-			if err != nil {
-				return nil, err
-			}
+		if ok {
+			ch = *pch
+		} else {
+			ok := cacheController.Find(CubeCacheVer, cp.PosStr(), &ch)
 
-			ssc := make([]system.System, 0, len(ss))
-			for _, s := range ss {
-				if cp.Contains(s.Coords) {
-					ssc = append(ssc, s)
+			if !ok {
+				c := cp.Center()
+				ss, err := system.Get(c.X, c.Y, c.Z, ChunkSize)
+				if err != nil {
+					return nil, err
 				}
-			}
 
-			ch = Chunk{
-				Pos:     cp,
-				Systems: ssc,
-			}
+				ssc := make([]system.System, 0, len(ss))
+				for _, s := range ss {
+					if cp.Contains(s.Coords) {
+						ssc = append(ssc, s)
+					}
+				}
 
-			cacheController.Store(CubeCacheVer, ch)
+				ch = Chunk{
+					Pos:     cp,
+					Systems: ssc,
+				}
+
+				cacheController.Store(CubeCacheVer, ch)
+			}
+			ChunkCache[cp] = &ch
 		}
 
 		for _, s := range ch.Systems {
