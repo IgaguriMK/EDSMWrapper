@@ -17,10 +17,10 @@ import (
 )
 
 const SystemInfoCacheVer = 1
-const RetryCount = 10
+const RetryCount = 20
 
 var (
-	apiCallWaitDefault = time.Millisecond * 250
+	apiCallWaitDefault = time.Millisecond * 4000
 	apiCallWait        = apiCallWaitDefault
 )
 
@@ -33,6 +33,22 @@ var apiLock sync.Mutex
 
 func init() {
 	cache.AddCacheType("systemInfo")
+}
+
+func CheckAPILocked() (bool, error) {
+	url := "https://www.edsm.net/api-system-v1/bodies?systemId=27"
+	res, err := http.Get(url)
+
+	if err != nil {
+		return false, err
+	}
+
+	bytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return false, err
+	}
+
+	return string(bytes) == "[]", nil
 }
 
 type System struct {
@@ -368,20 +384,12 @@ type Body struct {
 	VolcanismType                 string  `json:"volcanismType"`
 }
 
-func CheckAPILocked() (bool, error) {
-	url := "https://www.edsm.net/api-system-v1/bodies?systemId=27"
-	res, err := http.Get(url)
-
-	if err != nil {
-		return false, err
+func (b Body) Terraformable() string {
+	if b.TerraformingState == "Candidate for terraforming" {
+		return "T"
+	} else {
+		return "F"
 	}
-
-	bytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return false, err
-	}
-
-	return string(bytes) == "[]", nil
 }
 
 var shortTypes = map[string]string{
@@ -403,7 +411,28 @@ var shortTypes = map[string]string{
 	"T (Brown dwarf) Star":    "BD_R",
 	"T Tauri Star":            "P_TTS",
 	"Y (Brown dwarf) Star":    "BD_Y",
+
+	"Ammonia world":                     "AW",
+	"Class I gas giant":                 "GG1",
+	"Class II gas giant":                "GG2",
+	"Class III gas giant":               "GG3",
+	"Class IV gas giant":                "GG4",
+	"Class V gas giant":                 "GG5",
+	"Earth-like world":                  "ELW",
+	"Gas giant with ammonia-based life": "GGABL",
+	"Gas giant with water-based life":   "GGWBL",
+	"High metal content world":          "HMC",
+	"Icy body":                          "Icy",
+	"Metal-rich body":                   "Metal",
+	"Rocky Ice world":                   "RockyIce",
+	"Rocky body":                        "Rocky",
+	"Water giant":                       "WG",
+	"Water world":                       "WW",
+
+	"": "None",
 }
+
+var ShortTypeUnknown []string
 
 func ShortType(longType string) string {
 	s, ok := shortTypes[longType]
@@ -411,7 +440,24 @@ func ShortType(longType string) string {
 		return s
 	}
 
-	log.Println("Unknown Type:", longType)
+	ShortTypeUnknown = append(ShortTypeUnknown, longType)
+
+	s = longType
+	s = strings.Replace(s, " ", "_", -1)
+	s = strings.Replace(s, "(", "_", -1)
+	s = strings.Replace(s, ")", "_", -1)
+
+	return s
+}
+
+func (b Body) ShortSubType() string {
+	longType := b.SubType
+	s, ok := shortTypes[longType]
+	if ok {
+		return s
+	}
+
+	ShortTypeUnknown = append(ShortTypeUnknown, longType)
 
 	s = longType
 	s = strings.Replace(s, " ", "_", -1)
