@@ -297,6 +297,7 @@ func safeFileName(str string) string {
 	str = strings.Replace(str, `:`, "_col_", -1)
 	str = strings.Replace(str, `;`, "_scol_", -1)
 	str = strings.Replace(str, `\`, "_bs_", -1)
+	str = strings.Replace(str, `+`, "_plus_", -1)
 
 	return str
 }
