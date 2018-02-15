@@ -16,7 +16,7 @@ import (
 	"github.com/IgaguriMK/edsmWrapper/vec"
 )
 
-const SystemInfoCacheVer = 1
+const SystemInfoCacheVer = 2
 const RetryCount = 20
 
 var (
@@ -124,13 +124,19 @@ func Get(x, y, z, size float64) ([]System, error) {
 		time.Sleep(apiCallWait)
 	}
 
-	var v []System
+	var v map[int64]System
 	err := json.Unmarshal(bytes, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return v, nil
+	vv := make([]System, len(v))
+
+	for _, s := range v {
+		vv = append(vv, s)
+	}
+
+	return vv, nil
 }
 
 func GetSystemByName(name string) (*System, error) {
@@ -205,11 +211,11 @@ func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) 
 	}
 
 	var systemInfo SystemInfo
-	if cc.Find(SystemInfoCacheVer, fmt.Sprintf("systemInfo/%d", sys.ID), &systemInfo) {
+	if cc.Find(SystemInfoCacheVer, fmt.Sprintf("systemInfo/%s", safeFileName(sys.Name)), &systemInfo) {
 		return &systemInfo, nil
 	}
 
-	url := fmt.Sprintf("https://www.edsm.net/api-system-v1/bodies?systemId=%d", sys.ID)
+	url := fmt.Sprintf("https://www.edsm.net/api-system-v1/bodies?systemName=%s", sys.Name)
 	log.Println(url)
 
 	var bytes []byte
@@ -281,6 +287,20 @@ func getAPI(url string) ([]byte, bool, error) {
 	return bytes, true, nil
 }
 
+func safeFileName(str string) string {
+	str = strings.Replace(str, `_`, "__", -1)
+	str = strings.Replace(str, `,`, "_c_", -1)
+	str = strings.Replace(str, `/`, "_s_", -1)
+	str = strings.Replace(str, `'`, "_q_", -1)
+	str = strings.Replace(str, "`", "_bq_", -1)
+	str = strings.Replace(str, `=`, "_eq_", -1)
+	str = strings.Replace(str, `:`, "_col_", -1)
+	str = strings.Replace(str, `;`, "_scol_", -1)
+	str = strings.Replace(str, `\`, "_bs_", -1)
+
+	return str
+}
+
 type SystemInfo struct {
 	Bodies []Body `json:"bodies"`
 	ID     int32  `json:"id"`
@@ -289,7 +309,7 @@ type SystemInfo struct {
 }
 
 func (info SystemInfo) Key() string {
-	return fmt.Sprintf("systemInfo/%d", info.ID)
+	return fmt.Sprintf("systemInfo/%s", safeFileName(info.Name))
 }
 
 func (info *SystemInfo) StarCount() int {
