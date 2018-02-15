@@ -215,7 +215,9 @@ func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) 
 		return &systemInfo, nil
 	}
 
-	url := fmt.Sprintf("https://www.edsm.net/api-system-v1/bodies?systemName=%s", sys.Name)
+	params := url.Values{}
+	params.Add("systemName", sys.Name)
+	url := "https://www.edsm.net/api-system-v1/bodies?" + params.Encode()
 	log.Println(url)
 
 	var bytes []byte
