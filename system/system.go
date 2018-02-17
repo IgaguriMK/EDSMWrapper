@@ -16,7 +16,7 @@ import (
 	"github.com/IgaguriMK/edsmWrapper/vec"
 )
 
-const SystemInfoCacheVer = 2
+const SystemInfoCacheVer = 3
 const RetryCount = 20
 
 var (
@@ -357,12 +357,12 @@ func (info *SystemInfo) Planets() []Body {
 }
 
 type Body struct {
-	AbsoluteMagnitude     float64           `json:"absoluteMagnitude"`
-	Age                   int64             `json:"age"`
-	ArgOfPeriapsis        float64           `json:"argOfPeriapsis"`
-	AtmosphereComposition map[string]string `json:"atmosphereComposition"`
-	AtmosphereType        string            `json:"atmosphereType"`
-	AxialTilt             float64           `json:"axialTilt"`
+	AbsoluteMagnitude     float64            `json:"absoluteMagnitude"`
+	Age                   int64              `json:"age"`
+	ArgOfPeriapsis        float64            `json:"argOfPeriapsis"`
+	AtmosphereComposition map[string]float64 `json:"atmosphereComposition"`
+	AtmosphereType        string             `json:"atmosphereType"`
+	AxialTilt             float64            `json:"axialTilt"`
 	Belts                 []struct {
 		InnerRadius float64 `json:"innerRadius"`
 		Mass        string  `json:"mass"`
