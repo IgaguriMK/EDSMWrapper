@@ -127,6 +127,7 @@ func Get(x, y, z, size float64) ([]System, error) {
 	var v []System
 	err := json.Unmarshal(bytes, &v)
 	if err != nil {
+		log.Println("Unexcepted json: ", string(bytes))
 		return nil, err
 	}
 
@@ -190,6 +191,7 @@ func GetSystemByName(name string) (*System, error) {
 	var v System
 	err := json.Unmarshal(bytes, &v)
 	if err != nil {
+		log.Println("Unexcepted json: ", string(bytes))
 		return nil, err
 	}
 
@@ -256,6 +258,7 @@ func (sys System) GetSystemInfo(cc *cache.CacheController) (*SystemInfo, error) 
 
 	err := json.Unmarshal(bytes, &systemInfo)
 	if err != nil {
+		log.Println("Unexcepted json: ", string(bytes))
 		return nil, err
 	}
 
