@@ -160,3 +160,21 @@ type cache struct {
 	Version   int64  `json:"version"`
 	Content   string `json:"content"`
 }
+
+var DefaultCacher = defaultCacher()
+
+func defaultCacher() *CacheController {
+	userprofile := os.Getenv("USERPROFILE")
+
+	cacheDir := "~/.cache/EDSMCache"
+	if userprofile != "" {
+		cacheDir = userprofile + "/AppData/Local/IgaguriMK/EDSMCache"
+	}
+
+	cc, err := NewController(cacheDir)
+	if err != nil {
+		log.Fatal("Can't prepare cache:", err)
+	}
+
+	return cc
+}
