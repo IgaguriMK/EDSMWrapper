@@ -124,19 +124,13 @@ func Get(x, y, z, size float64) ([]System, error) {
 		time.Sleep(apiCallWait)
 	}
 
-	var v map[int64]System
+	var v []System
 	err := json.Unmarshal(bytes, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	vv := make([]System, len(v))
-
-	for _, s := range v {
-		vv = append(vv, s)
-	}
-
-	return vv, nil
+	return v, nil
 }
 
 func GetSystemByName(name string) (*System, error) {
