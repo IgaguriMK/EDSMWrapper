@@ -58,7 +58,7 @@ func NewController(dirName string) (*CacheController, error) {
 
 	return &CacheController{
 		dirName: dirName,
-		maxAge:  3600 * 24 * 30,
+		maxAge:  3600 * 24 * 28 * 3,
 	}, nil
 }
 
