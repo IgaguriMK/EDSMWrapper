@@ -35,6 +35,19 @@ func init() {
 	cache.AddCacheType("systemInfo")
 }
 
+func isEmptyResult(bs []byte) bool {
+	switch string(bs) {
+	case "[]":
+		return true
+	case "{}":
+		return true
+	case "":
+		return true
+	default:
+		return false
+	}
+}
+
 func CheckAPILocked() (bool, error) {
 	url := "https://www.edsm.net/api-system-v1/bodies?systemId=27"
 	res, err := http.Get(url)
@@ -48,7 +61,7 @@ func CheckAPILocked() (bool, error) {
 		return false, err
 	}
 
-	return string(bytes) == "[]", nil
+	return isEmptyResult(bytes), nil
 }
 
 type System struct {
@@ -279,7 +292,7 @@ func getAPI(url string) ([]byte, bool, error) {
 		return nil, false, err
 	}
 
-	if string(bytes) == "[]" {
+	if isEmptyResult(bytes) {
 		return bytes, false, nil
 	}
 
